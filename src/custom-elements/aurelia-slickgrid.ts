@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 // import 3rd party vendor libs
 import 'slickgrid/slick.core';
 import 'slickgrid/slick.interactions';
@@ -62,8 +63,8 @@ import { SlickFooterComponent } from '@slickgrid-universal/custom-footer-compone
 import { SlickEmptyWarningComponent } from '@slickgrid-universal/empty-warning-component';
 import { SlickPaginationComponent } from '@slickgrid-universal/pagination-component';
 
-import { bindable, BindingEngine, bindingMode, Container, Factory, inject, useView, PLATFORM } from 'aurelia-framework';
-import { EventAggregator, Subscription } from 'aurelia-event-aggregator';
+import { bindable, IContainer, IEventAggregator, IDisposable, BindingMode, IObserverLocator, CollectionKind } from 'aurelia';
+import { ICollectionSubscriber, ICollectionObserver } from '@aurelia/runtime';
 import { dequal } from 'dequal/lite';
 
 import { Constants } from '../constants';
@@ -83,17 +84,6 @@ declare const Slick: SlickNamespace;
 // add Sortable to the window object so that SlickGrid lib can use globally
 (window as any).Sortable = Sortable;
 
-// Aurelia doesn't support well TypeScript @autoinject in a Plugin so we'll do it the manual way
-@inject(
-  AureliaUtilService,
-  BindingEngine,
-  Container,
-  Element,
-  EventAggregator,
-  ContainerService,
-  TranslaterService,
-)
-@useView(PLATFORM.moduleName('./aurelia-slickgrid.html'))
 export class AureliaSlickgridCustomElement {
   private _columnDefinitions: Column[] = [];
   private _currentDatasetLength = 0;
@@ -108,13 +98,26 @@ export class AureliaSlickgridCustomElement {
   private _isLocalGrid = true;
   private _paginationOptions: Pagination | undefined;
   private _registeredResources: ExternalResource[] = [];
+  private _columnDefinitionObserver: ICollectionObserver<CollectionKind.array>;
+  private _columnDefinitionsSubscriber: ICollectionSubscriber = {
+    handleCollectionChange: () => {
+      this._columnDefinitions = this.columnDefinitions;
+      if (this._isGridInitialized) {
+        this.updateColumnDefinitionsList(this.columnDefinitions);
+      }
+      if (this._columnDefinitions.length > 0) {
+        this.copyColumnWidthsReference(this._columnDefinitions);
+      }
+    }
+  };
+
   groupItemMetadataProvider?: SlickGroupItemMetadataProvider;
   backendServiceApi: BackendServiceApi | undefined;
   locales!: Locale;
   metrics?: Metrics;
   showPagination = false;
   serviceList: any[] = [];
-  subscriptions: Array<EventSubscription | Subscription> = [];
+  subscriptions: Array<EventSubscription | IDisposable> = [];
   paginationData?: {
     gridOptions: GridOption;
     paginationService: PaginationService;
@@ -144,14 +147,14 @@ export class AureliaSlickgridCustomElement {
   sortService: SortService;
   treeDataService: TreeDataService;
 
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) columnDefinitions: Column[] = [];
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) element!: Element;
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) dataview!: SlickDataView;
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) grid!: SlickGrid;
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) paginationOptions: Pagination | undefined;
-  @bindable({ defaultBindingMode: bindingMode.twoWay }) totalItems = 0;
-  @bindable({ defaultBindingMode: bindingMode.fromView }) extensions!: ExtensionList<any>;
-  @bindable({ defaultBindingMode: bindingMode.fromView }) instances: AureliaGridInstance | null = null;
+  @bindable({ mode: BindingMode.twoWay }) columnDefinitions: Column[] = [];
+  @bindable({ mode: BindingMode.twoWay }) element!: Element;
+  @bindable({ mode: BindingMode.twoWay }) dataview!: SlickDataView;
+  @bindable({ mode: BindingMode.twoWay }) grid!: SlickGrid;
+  @bindable({ mode: BindingMode.twoWay }) paginationOptions: Pagination | undefined;
+  @bindable({ mode: BindingMode.twoWay }) totalItems = 0;
+  @bindable({ mode: BindingMode.fromView }) extensions!: ExtensionList<any>;
+  @bindable({ mode: BindingMode.fromView }) instances: AureliaGridInstance | null = null;
   @bindable() customDataView?: SlickDataView;
   @bindable() dataset: any[] = [];
   @bindable() datasetHierarchical?: any[] | null;
@@ -160,10 +163,10 @@ export class AureliaSlickgridCustomElement {
 
   constructor(
     private readonly aureliaUtilService: AureliaUtilService,
-    private readonly bindingEngine: BindingEngine,
-    private readonly container: Container,
+    @IObserverLocator private readonly observerLocator: IObserverLocator,
+    @IContainer private readonly container: IContainer,
     private readonly elm: HTMLDivElement,
-    private readonly globalEa: EventAggregator,
+    @IEventAggregator private readonly globalEa: IEventAggregator,
     private readonly containerService: ContainerService,
     private readonly translaterService: TranslaterService,
     externalServices: {
@@ -545,6 +548,7 @@ export class AureliaSlickgridCustomElement {
 
     // also dispose of all Subscriptions
     this.subscriptions = disposeAllSubscriptions(this.subscriptions);
+    this._columnDefinitionObserver.unsubscribe(this._columnDefinitionsSubscriber);
 
     if (this.backendServiceApi) {
       for (const prop of Object.keys(this.backendServiceApi)) {
@@ -573,28 +577,16 @@ export class AureliaSlickgridCustomElement {
     this.detached(shouldEmptyDomElementContainer);
   }
 
-  bind() {
+  bound() {
     // get the grid options (order of precedence is Global Options first, then user option which could overwrite the Global options)
     this.gridOptions = { ...GlobalGridOptions, ...this.gridOptions };
     this._columnDefinitions = this.columnDefinitions;
 
-    // subscribe to column definitions assignment changes with BindingEngine
+    // subscribe to column definitions assignment changes
     // assignment changes are not triggering a "changed" event https://stackoverflow.com/a/30286225/1212166
     // also binding docs https://github.com/aurelia/binding/blob/master/doc/article/en-US/binding-observables.md#observing-collections
-    this.subscriptions.push(
-      this.bindingEngine.collectionObserver(this.columnDefinitions)
-        .subscribe(this.columnDefinitionsChanged.bind(this))
-    );
-  }
-
-  columnDefinitionsChanged() {
-    this._columnDefinitions = this.columnDefinitions;
-    if (this._isGridInitialized) {
-      this.updateColumnDefinitionsList(this.columnDefinitions);
-    }
-    if (this._columnDefinitions.length > 0) {
-      this.copyColumnWidthsReference(this._columnDefinitions);
-    }
+    this._columnDefinitionObserver = this.observerLocator.getArrayObserver(this.columnDefinitions);
+    this._columnDefinitionObserver.subscribe(this._columnDefinitionsSubscriber);
   }
 
   /**

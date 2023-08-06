@@ -1,3 +1,4 @@
+/* eslint-disable no-prototype-builtins */
 import {
   addToArrayWhenNotExists,
   EventSubscription,
@@ -9,11 +10,11 @@ import {
 } from '@slickgrid-universal/common';
 import { EventPubSubService } from '@slickgrid-universal/event-pub-sub';
 import { SlickRowDetailView as UniversalSlickRowDetailView } from '@slickgrid-universal/row-detail-view-plugin';
-import { inject, singleton } from 'aurelia-framework';
 import * as DOMPurify from 'dompurify';
 
 import { AureliaViewOutput, GridOption, RowDetailView, ViewModelBindableInputData } from '../models/index';
 import { AureliaUtilService } from '../services/aureliaUtil.service';
+import { singleton } from 'aurelia';
 
 // using external non-typed js libraries
 declare const Slick: SlickNamespace;
@@ -26,8 +27,7 @@ export interface CreatedView extends AureliaViewOutput {
   dataContext: any;
 }
 
-@singleton(true)
-@inject(AureliaUtilService, EventPubSubService)
+@singleton()
 export class SlickRowDetailView extends UniversalSlickRowDetailView {
   protected _eventHandler!: SlickEventHandler;
   protected _preloadView = '';

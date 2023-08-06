@@ -22,7 +22,7 @@ module.exports = function(env, { analyze }) {
   return {
     target: production ? 'node' : 'web',
     mode: production ? 'production' : 'development',
-    devtool: production ? undefined : 'eval-cheap-source-map',
+    devtool: production ? 'source-map' : 'inline-source-map',
     entry: {
       // Build only plugin in production mode,
       // build dev-app in non-production mode
@@ -82,7 +82,7 @@ module.exports = function(env, { analyze }) {
               // If you turn on "closed" mode, there will be difficulty to perform e2e
               // tests (such as Playwright). Because shadowRoot is not accessible through
               // standard DOM APIs in "closed" mode.
-              defaultShadowOptions: { mode: 'open' }
+              // defaultShadowOptions: { mode: 'open' }
             }
           },
           exclude: /node_modules/

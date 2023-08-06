@@ -5,6 +5,8 @@ import { MyApp } from './my-app';
 // However, css files imported in other js/ts files are processed by style-loader.
 // import shared from './shared.css';
 import * as Plugin from "../src/index";
+import { I18nConfiguration } from '@aurelia/i18n';
+import '@slickgrid-universal/common/dist/styles/css/slickgrid-theme-bootstrap.css';
 
 Aurelia
   /*
@@ -14,6 +16,6 @@ Aurelia
   }))
   */
   // Register all exports of the plugin
-  .register(Plugin)
+  .register(I18nConfiguration, Plugin)
   .app(MyApp)
   .start();

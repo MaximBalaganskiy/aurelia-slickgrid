@@ -2,7 +2,7 @@
   <!-- Header slot if you need to create a complex custom header -->
   <au-slot name="slickgrid-header"></au-slot>
 
-  <div id.bind="gridId" class="slickgrid-container" style="width: 100%" focusout.delegate="commitEdit($event.target)">
+  <div id.bind="gridId" class="slickgrid-container" style="width: 100%" focusout.trigger="commitEdit($event.target)">
   </div>
 
   <!-- Footer slot if you need to create a complex custom footer -->

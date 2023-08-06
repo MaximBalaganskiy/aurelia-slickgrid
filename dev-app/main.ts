@@ -6,7 +6,7 @@ import { MyApp } from './my-app';
 // import shared from './shared.css';
 import * as Plugin from "../src/index";
 import { I18nConfiguration } from '@aurelia/i18n';
-import '@slickgrid-universal/common/dist/styles/css/slickgrid-theme-bootstrap.css';
+import '@slickgrid-universal/common/dist/styles/css/slickgrid-theme-material.css';
 
 Aurelia
   /*

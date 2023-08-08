@@ -219,7 +219,7 @@ export class AureliaSlickgridCustomElement {
     );
 
     this.gridStateService = new GridStateService(this.extensionService, this.filterService, this._eventPubSubService, this.sharedService, this.sortService, this.treeDataService);
-    this.gridService =  new GridService(this.gridStateService, this.filterService, this._eventPubSubService, this.paginationService, this.sharedService, this.sortService, this.treeDataService);
+    this.gridService = new GridService(this.gridStateService, this.filterService, this._eventPubSubService, this.paginationService, this.sharedService, this.sortService, this.treeDataService);
     this.groupingService = new GroupingAndColspanService(this.extensionUtility, this._eventPubSubService);
 
     this.serviceList = [
@@ -475,7 +475,7 @@ export class AureliaSlickgridCustomElement {
       slickGrid: this.grid,
 
       // public methods
-      dispose: this.dispose.bind(this),
+      dispose: this.disposeInstance.bind(this),
 
       // return all available Services (non-singleton)
       backendService: this.gridOptions?.backendServiceApi?.service,
@@ -500,6 +500,12 @@ export class AureliaSlickgridCustomElement {
     this._eventPubSubService.publish(`${aureliaEventPrefix}onAureliaGridCreated`, aureliaElementInstance);
   }
 
+  /** This is an Aurlia lifecycle hook */
+  detaching() {
+    this.detached();
+  }
+
+  /** Do not confuse with the Aurelia hook - it's been renamed */
   detached(shouldEmptyDomElementContainer = false) {
     const aureliaEventPrefix = this.gridOptions?.defaultAureliaEventPrefix ?? '';
     this._eventPubSubService.publish(`${aureliaEventPrefix}onBeforeGridDestroy`, this.grid);
@@ -575,7 +581,8 @@ export class AureliaSlickgridCustomElement {
     emptyElement(gridContainerElm);
   }
 
-  dispose(shouldEmptyDomElementContainer = false) {
+  /** Do not rename to `dispose` as it's an Aurelia hook */
+  disposeInstance(shouldEmptyDomElementContainer = false) {
     this.detached(shouldEmptyDomElementContainer);
   }
 

@@ -8,7 +8,7 @@
 //   ViewSlot,
 // } from 'aurelia-framework';
 import { AureliaViewOutput } from '../models/index';
-import { IAurelia, singleton } from 'aurelia';
+import { Constructable, CustomElement, IAurelia, singleton } from 'aurelia';
 
 @singleton()
 export class AureliaUtilService {
@@ -16,34 +16,16 @@ export class AureliaUtilService {
     @IAurelia private readonly au: IAurelia
   ) { }
 
-  async createAureliaViewModelAddToSlot(templateUrl: string, bindableData: any, targetElement?: HTMLElement | Element, clearTargetContent = false): Promise<AureliaViewOutput | null> {
+  async createAureliaViewModelAddToSlot(viewModel: Constructable, bindableData: any, targetElement?: HTMLElement | Element, clearTargetContent = false): Promise<AureliaViewOutput | null> {
     if (targetElement) {
       // TODO: MB - is this needed?
       if (clearTargetContent && targetElement.innerHTML) {
         targetElement.innerHTML = '';
       }
 
-      targetElement.innerHTML = '<au-compose component.bind="template" component.ref="viewModelRef"></au-compose>';
-
-      // create some bindings including the template & other bindable data
-      const bindings: any = { template: (templateUrl || ''), ...bindableData, viewModelRef: {} };
-      return { controller: await this.au.enhance({ host: targetElement, component: bindings }) };
-    }
-    return null;
-  }
-
-  async createAureliaViewAddToSlot(templateUrl: string, targetElement?: HTMLElement | Element, clearTargetContent = false): Promise<AureliaViewOutput | null> {
-    if (targetElement) {
-      // TODO: MB - is this needed?
-      if (clearTargetContent && targetElement.innerHTML) {
-        targetElement.innerHTML = '';
-      }
-
-      targetElement.innerHTML = '<au-compose template.bind="template" component.ref="viewModelRef"></au-compose>';
-
-      // create some bindings including the template & other bindable data
-      const bindings = { template: (templateUrl || ''), viewModelRef: {} };
-      return { controller: await this.au.enhance({ host: targetElement, component: bindings }) };
+      const def = CustomElement.getDefinition(viewModel);
+      targetElement.innerHTML = `<${def.name}></${def.name}>`;
+      return { controller: await this.au.enhance({ host: targetElement, component: { ...bindableData, viewModelRef: {} } }) };
     }
     return null;
   }

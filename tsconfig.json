@@ -13,7 +13,8 @@
   },
   "include": [
     "test",
-    "src"
+    "src",
+    "dev-app"
   ],
   "files": [
     "src/resource.d.ts"

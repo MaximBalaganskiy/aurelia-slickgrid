@@ -14,7 +14,7 @@ import * as DOMPurify from 'dompurify';
 
 import { AureliaViewOutput, GridOption, RowDetailView, ViewModelBindableInputData } from '../models/index';
 import { AureliaUtilService } from '../services/aureliaUtil.service';
-import { singleton } from 'aurelia';
+import { Constructable, singleton } from 'aurelia';
 
 // using external non-typed js libraries
 declare const Slick: SlickNamespace;
@@ -30,9 +30,9 @@ export interface CreatedView extends AureliaViewOutput {
 @singleton()
 export class SlickRowDetailView extends UniversalSlickRowDetailView {
   protected _eventHandler!: SlickEventHandler;
-  protected _preloadView = '';
+  protected _preloadViewModel: Constructable;
   protected _slots: CreatedView[] = [];
-  protected _viewModel = '';
+  protected _viewModel: Constructable;
   protected _subscriptions: EventSubscription[] = [];
   protected _userProcessFn?: (item: any) => Promise<any>;
 
@@ -107,11 +107,11 @@ export class SlickRowDetailView extends UniversalSlickRowDetailView {
       // load the Preload & RowDetail Templates (could be straight HTML or Aurelia View/ViewModel)
       // when those are Aurelia View/ViewModel, we need to create View Slot & provide the html containers to the Plugin (preTemplate/postTemplate methods)
       if (!this.gridOptions.rowDetailView.preTemplate) {
-        this._preloadView = this.gridOptions?.rowDetailView?.preloadView || '';
+        this._preloadViewModel = this.gridOptions?.rowDetailView?.preloadViewModel;
         this.addonOptions.preTemplate = () => DOMPurify.sanitize(`<div class="${PRELOAD_CONTAINER_PREFIX}"></div>`);
       }
       if (!this.gridOptions.rowDetailView.postTemplate) {
-        this._viewModel = this.gridOptions?.rowDetailView?.viewModel || '';
+        this._viewModel = this.gridOptions?.rowDetailView?.viewModel;
         this.addonOptions.postTemplate = (itemDetail: any) => DOMPurify.sanitize(`<div class="${ROW_DETAIL_CONTAINER_PREFIX}${itemDetail[this.datasetIdPropName]}"></div>`);
       }
 
@@ -239,7 +239,7 @@ export class SlickRowDetailView extends UniversalSlickRowDetailView {
   async renderPreloadView() {
     const containerElements = this.gridContainerElement.getElementsByClassName(`${PRELOAD_CONTAINER_PREFIX}`);
     if (containerElements?.length >= 0) {
-      await this.aureliaUtilService.createAureliaViewAddToSlot(this._preloadView, containerElements[containerElements.length - 1], true);
+      await this.aureliaUtilService.createAureliaViewModelAddToSlot(this._preloadViewModel, {}, containerElements[containerElements.length - 1], true);
     }
   }
 

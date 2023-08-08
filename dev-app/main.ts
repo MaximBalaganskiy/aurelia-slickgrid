@@ -15,6 +15,7 @@ import { Example19Preload } from './example19-preload';
 import { DecimalValueConverter } from './value-converters/decimal';
 import { StringifyValueConverter } from './value-converters/stringify';
 import { DateFormatValueConverter } from './value-converters/date-format';
+import { Example19 } from './example19';
 
 Aurelia
   /*

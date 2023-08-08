@@ -2,7 +2,7 @@ import {
   AureliaGridInstance,
   GridOption,
 } from '../src';
-import { BindingMode, bindable } from 'aurelia';
+import { bindable } from 'aurelia';
 import { Column, Editors, ExtensionName, FieldType, Filters, Formatters } from '@slickgrid-universal/common';
 import { Example19Preload } from './example19-preload';
 import { Example19DetailView } from './example19-detail-view';

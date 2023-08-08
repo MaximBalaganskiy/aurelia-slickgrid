@@ -1,7 +1,5 @@
 import { bindable } from 'aurelia';
-
-import { Example19 } from './example19';
-import { SlickGrid, ViewModelBindableData } from '../src';
+import { SlickGrid } from '../src';
 import { SlickDataView } from '@slickgrid-universal/common';
 
 export class Example19DetailView {
@@ -17,29 +15,13 @@ export class Example19DetailView {
   };
 
   // you also have access to the following objects (it must match the exact property names shown below)
-  addon: any; // row detail addon instance
-  grid!: SlickGrid;
-  dataView!: SlickDataView;
+  @bindable() addon: any; // row detail addon instance
+  @bindable() grid!: SlickGrid;
+  @bindable() dataView!: SlickDataView;
 
   // you can also optionally use the Parent Component reference
   // NOTE that you MUST provide it through the "parent" property in your "rowDetail" grid options
-  parent?: Example19;
-
-  bind(_bindingContext: any, overrideContext: any) {
-    if (overrideContext && overrideContext.parentOverrideContext && overrideContext.parentOverrideContext.bindingContext && overrideContext.parentOverrideContext.bindingContext.model) {
-      this.bindReferences(overrideContext.parentOverrideContext.bindingContext);
-    }
-  }
-
-  bindReferences(data: ViewModelBindableData) {
-    if (data) {
-      this.model = data.model;
-      this.addon = data.addon;
-      this.grid = data.grid;
-      this.dataView = data.dataView;
-      this.parent = data.parent;
-    }
-  }
+  @bindable() parent?: any;
 
   alertAssignee(name: string) {
     if (typeof name === 'string') {

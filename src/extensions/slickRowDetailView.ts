@@ -239,7 +239,7 @@ export class SlickRowDetailView extends UniversalSlickRowDetailView {
   async renderPreloadView() {
     const containerElements = this.gridContainerElement.getElementsByClassName(`${PRELOAD_CONTAINER_PREFIX}`);
     if (containerElements?.length >= 0) {
-      await this.aureliaUtilService.createAureliaViewModelAddToSlot(this._preloadViewModel, {}, containerElements[containerElements.length - 1], true);
+      await this.aureliaUtilService.createAureliaViewModelAddToSlot(this._preloadViewModel, undefined, containerElements[containerElements.length - 1], true);
     }
   }
 
